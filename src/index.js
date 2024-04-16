@@ -1,3 +1,4 @@
+const readlineSync = require('readline-sync');
 const fs = require('fs');
 const lz4 = require('lz4');
 const { promisify } = require('util');
@@ -188,12 +189,77 @@ class FileHandler {
     }
 }
 
+// ------------------------------------------------------------------------------------------------------
+
+
+function showMenu() {
+    console.log('Bem-vindo à interface interativa!');
+    console.log('Escolha uma opção:');
+    console.log('1. Comprimir arquivo');
+    console.log('2. Descomprimir arquivo');
+    console.log('3. Sair');
+}
+
+/*
 // Exemplo de uso:
 const fileHandler = new FileHandler('./output/');
 
 // Comprimir e salvar o arquivo
-fileHandler.compressAndSave('package.json', true).then(() => {
+fileHandler.compressAndSave('test.jpg', true).then(() => {
     fileHandler.decompressAndRead().then((data) => {
-        fs.writeFileSync(`${fileHandler.outputPath}arquivo_descomprimido.json`, data);
+        fs.writeFileSync(`${fileHandler.outputPath}arquivo_descomprimido.jpg`, data);
     });
 });
+*/
+
+async function compressFile(fileHandler) {
+    const filePath = readlineSync.question('Digite o caminho do arquivo a ser comprimido: ');
+
+    try {
+        await fileHandler.compressAndSave(filePath);
+        console.log('Arquivo comprimido com sucesso.');
+    } catch (err) {
+        console.error('Erro ao comprimir o arquivo:', err);
+    }
+}
+
+async function decompressFile(fileHandler) {
+    try {
+        const data = await fileHandler.decompressAndRead();
+        const extension = readlineSync.question('Digite a extensão do arquivo descomprimido( ignore o . use apenas o nome): ');
+        const fileName = readlineSync.question('Digite o nome do arquivo descomprimido: ');
+        const destiny = readlineSync.question('Digite o caminho de destino do arquivo descomprimido: ');
+
+        await writeFileAsync(`${destiny}${fileName}.${extension}`, data);
+        console.log('Arquivo descomprimido com sucesso.');
+    } catch (err) {
+        console.error('Erro ao descomprimir o arquivo:', err);
+    }
+}
+
+
+async function main() {
+    let option = 0;
+    const fileHandler = new FileHandler('./output/');
+
+    while (option !== 3) {
+        showMenu();
+        option = readlineSync.questionInt('Digite a opcao desejada: ');
+
+        switch (option) {
+            case 1:
+                await compressFile(fileHandler);
+                break;
+            case 2:
+                await decompressFile(fileHandler);
+                break;
+            case 3:
+                console.log('Saindo...');
+                break;
+            default:
+                console.log('Opção inválida.');
+        }
+    }
+}
+
+main();
